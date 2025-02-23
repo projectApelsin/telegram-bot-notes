@@ -86,7 +86,6 @@ async def view_notes_step2(callback: types.CallbackQuery):
     text = notes.get(title, "Замітка не знайдена.")
     await callback.message.answer(f"📖 <b>{title}</b>\n\n{text}", reply_markup=main_menu)
     await callback.answer()
-
 # --- Изменение заметки ---
 @dp.message(F.text == "✏️ Змінити замітку")
 async def edit_notes_step1(message: types.Message):
@@ -102,8 +101,11 @@ async def edit_notes_step1(message: types.Message):
 async def edit_notes_step2(callback: types.CallbackQuery):
     _, title = callback.data.split(":", 1)  # Разбиваем корректно
     user_states[callback.from_user.id] = {"state": "awaiting_new_text", "title": title}
-    await callback.message.answer(f"Введіть новий текст для замітки '{title}':", reply_markup=cancel_keyboard)
+
+    # Изменяем сообщение кнопки на ввод нового текста
+    await callback.message.edit_text(f"Введіть новий текст для замітки '{title}':", reply_markup=cancel_keyboard)
     await callback.answer()
+
 
 @dp.message(lambda msg: user_states.get(msg.from_user.id, {}).get("state") == "awaiting_new_text")
 async def edit_notes_step3(message: types.Message):
@@ -111,23 +113,9 @@ async def edit_notes_step3(message: types.Message):
     title = user_states[user_id]["title"]
     update_note(user_id, title, message.text)
     user_states.pop(user_id, None)
+
+    # Отвечаем пользователю о завершении редактирования
     await message.answer(f"Замітка '{title}' оновлена!", reply_markup=main_menu)
-
-# --- Удаление заметки ---
-@dp.message(F.text == "🗑 Видалити замітку")
-async def delete_notes_step1(message: types.Message):
-    notes = get_notes(message.from_user.id)
-    if notes:
-        await message.answer("Виберіть замітку для видалення:", reply_markup=create_notes_keyboard(notes, "delete_note"))
-    else:
-        await message.answer("У вас немає заміток.", reply_markup=main_menu)
-
-@dp.callback_query(F.data.startswith("delete_note:"))
-async def delete_notes_step2(callback: types.CallbackQuery):
-    _, title = callback.data.split(":", 1)
-    delete_note(callback.from_user.id, title)
-    await callback.message.edit_text(f"Замітка '{title}' видалена.", reply_markup=None)  # Изменяем сообщение
-    await callback.answer("Замітка видалена!", cache_time=1)  # Добавляем cache_time
 
 
 # --- Запуск бота ---
