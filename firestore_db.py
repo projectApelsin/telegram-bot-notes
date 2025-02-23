@@ -1,9 +1,15 @@
 import firebase_admin
 from firebase_admin import credentials, firestore
-from config import GOOGLE_APPLICATION_CREDENTIALS
+import json
+import os
 
-# Ініціалізація Firebase
-cred = credentials.Certificate(GOOGLE_APPLICATION_CREDENTIALS)
+# Завантаження облікових даних із змінної середовища
+GOOGLE_APPLICATION_CREDENTIALS_JSON = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+if not GOOGLE_APPLICATION_CREDENTIALS_JSON:
+    raise ValueError("Google credentials not found in environment variable.")
+
+cred_dict = json.loads(GOOGLE_APPLICATION_CREDENTIALS_JSON)
+cred = credentials.Certificate(cred_dict)
 firebase_admin.initialize_app(cred)
 
 db = firestore.client()
