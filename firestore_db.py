@@ -1,7 +1,7 @@
+import config  # Важно! Гарантирует, что Firebase уже инициализирован
 import firebase_admin
 from firebase_admin import firestore
 
-# Firebase уже инициализирован в config.py, просто получаем Firestore
 db = firestore.client()
 
 def save_note(user_id, title, text):
