@@ -100,13 +100,13 @@ async def edit_notes_step1(message: types.Message):
 
 @dp.callback_query(F.data.startswith("edit_note:"))
 async def edit_notes_step2(callback: types.CallbackQuery):
-    _, title = callback.data.split(":", 1)  # Разбиваем корректно
+    logging.info(f"Callback received: {callback.data}")  # Логирование
+
+    _, title = callback.data.split(":", 1)
     user_states[callback.from_user.id] = {"state": "awaiting_new_text", "title": title}
 
-    # Изменяем сообщение кнопки на ввод нового текста
     await callback.message.edit_text(f"Введіть новий текст для замітки '{title}':", reply_markup=cancel_keyboard)
     await callback.answer()
-
 
 @dp.message(lambda msg: user_states.get(msg.from_user.id, {}).get("state") == "awaiting_new_text")
 async def edit_notes_step3(message: types.Message):
