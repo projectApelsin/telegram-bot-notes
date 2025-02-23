@@ -91,10 +91,12 @@ async def view_notes_step2(callback: types.CallbackQuery):
 @dp.message(F.text == "✏️ Змінити замітку")
 async def edit_notes_step1(message: types.Message):
     notes = get_notes(message.from_user.id)
+    logging.info(f"Notes for user {message.from_user.id}: {notes}")  # Лог
     if notes:
         await message.answer("Виберіть замітку для редагування:", reply_markup=create_notes_keyboard(notes, "edit_note"))
     else:
         await message.answer("У вас немає заміток.", reply_markup=main_menu)
+
 
 @dp.callback_query(F.data.startswith("edit_note:"))
 async def edit_notes_step2(callback: types.CallbackQuery):
