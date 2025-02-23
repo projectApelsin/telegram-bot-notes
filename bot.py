@@ -7,7 +7,7 @@ from aiogram.filters import CommandStart
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from firestore_db import save_note, get_notes, delete_note, update_note
+from firestore_db import save_note, get_notes, delete_note
 from config import BOT_TOKEN
 
 
