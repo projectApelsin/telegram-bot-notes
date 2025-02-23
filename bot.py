@@ -23,7 +23,6 @@ main_menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="📝 Нова заметка")],
         [KeyboardButton(text="📖 Переглянути заметку")],
-        [KeyboardButton(text="✏️ Змінити заметку")],
         [KeyboardButton(text="🗑 Видалити замітку")]
     ],
     resize_keyboard=True
@@ -86,47 +85,6 @@ async def view_notes_step2(callback: types.CallbackQuery):
     text = notes.get(title, "Замітка не знайдена.")
     await callback.message.answer(f"📖 <b>{title}</b>\n\n{text}", reply_markup=main_menu)
     await callback.answer()
-    
-# --- Изменение заметки ---
-@dp.message(F.text == "✏️ Змінити замітку")
-async def edit_notes_step1(message: types.Message):
-    notes = get_notes(message.from_user.id)
-    logging.info(f"Notes for user {message.from_user.id}: {notes}")  # Лог
-    if notes:
-        await message.answer("Виберіть замітку для редагування:", reply_markup=create_notes_keyboard(notes, "edit_note"))
-    else:
-        await message.answer("У вас немає заміток.", reply_markup=main_menu)
-
-@dp.callback_query(F.data.startswith("edit_note:"))
-async def edit_notes_step2(callback: types.CallbackQuery):
-    logging.info(f"Callback received: {callback.data}")  # Логирование
-
-    _, title = callback.data.split(":", 1)
-    user_states[callback.from_user.id] = {"state": "awaiting_new_text", "title": title}
-
-    # Удаляем старое сообщение с кнопками, если оно есть
-    await callback.message.delete()
-
-    # Отправляем новое сообщение с инструкцией
-    await callback.message.answer(f"Введіть новий текст для замітки '{title}':", reply_markup=cancel_keyboard)
-    await callback.answer()
-
-
-@dp.message(lambda msg: user_states.get(msg.from_user.id, {}).get("state") == "awaiting_new_text")
-async def edit_notes_step3(message: types.Message):
-    user_id = message.from_user.id
-
-    # Проверяем, есть ли у пользователя стейт (чтобы не получить KeyError)
-    if user_id not in user_states:
-        await message.answer("Помилка: спробуйте ще раз.", reply_markup=main_menu)
-        return
-
-    title = user_states[user_id]["title"]
-    update_note(user_id, title, message.text)
-    user_states.pop(user_id, None)
-
-    # Сообщаем об успешном обновлении
-    await message.answer(f"Замітка '{title}' оновлена!", reply_markup=main_menu)
 
 # --- Удаление заметки ---
 @dp.message(F.text == "🗑 Видалити замітку")

@@ -1,4 +1,4 @@
-import config  # Важно! Гарантирует, что Firebase уже инициализирован
+import config  
 import firebase_admin
 from firebase_admin import firestore
 
@@ -38,15 +38,3 @@ def delete_note(user_id, title):
             return True
     return False
 
-def update_note(user_id, title, new_text):
-    """Оновлює текст нотатки за заголовком"""
-    doc_ref = db.collection("notes").document(str(user_id))
-    doc = doc_ref.get()
-
-    if doc.exists:
-        notes = doc.to_dict().get("notes", {})
-        if title in notes:
-            notes[title] = new_text
-            doc_ref.set({"notes": notes})  # Оновлюємо документ
-            return True
-    return False
