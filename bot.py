@@ -86,7 +86,18 @@ async def view_notes_step2(callback: types.CallbackQuery):
     text = notes.get(title, "Замітка не знайдена.")
     await callback.message.answer(f"📖 <b>{title}</b>\n\n{text}", reply_markup=main_menu)
     await callback.answer()
-    @dp.callback_query(F.data.startswith("edit_note:"))
+    
+# --- Изменение заметки ---
+@dp.message(F.text == "✏️ Змінити замітку")
+async def edit_notes_step1(message: types.Message):
+    notes = get_notes(message.from_user.id)
+    logging.info(f"Notes for user {message.from_user.id}: {notes}")  # Лог
+    if notes:
+        await message.answer("Виберіть замітку для редагування:", reply_markup=create_notes_keyboard(notes, "edit_note"))
+    else:
+        await message.answer("У вас немає заміток.", reply_markup=main_menu)
+
+@dp.callback_query(F.data.startswith("edit_note:"))
 async def edit_notes_step2(callback: types.CallbackQuery):
     logging.info(f"Callback received: {callback.data}")  # Логирование
 
@@ -116,7 +127,6 @@ async def edit_notes_step3(message: types.Message):
 
     # Сообщаем об успешном обновлении
     await message.answer(f"Замітка '{title}' оновлена!", reply_markup=main_menu)
-
 
 # --- Удаление заметки ---
 @dp.message(F.text == "🗑 Видалити замітку")
