@@ -98,7 +98,7 @@ async def edit_notes_step1(message: types.Message):
 
 @dp.callback_query(F.data.startswith("edit_note:"))
 async def edit_notes_step2(callback: types.CallbackQuery):
-    _, _, title = callback.data.partition(":")
+    _, title = callback.data.split(":", 1)  # Разбиваем корректно
     user_states[callback.from_user.id] = {"state": "awaiting_new_text", "title": title}
     await callback.message.answer(f"Введіть новий текст для замітки '{title}':", reply_markup=cancel_keyboard)
     await callback.answer()
@@ -122,10 +122,11 @@ async def delete_notes_step1(message: types.Message):
 
 @dp.callback_query(F.data.startswith("delete_note:"))
 async def delete_notes_step2(callback: types.CallbackQuery):
-    _, _, title = callback.data.partition(":")
+    _, title = callback.data.split(":", 1)
     delete_note(callback.from_user.id, title)
-    await callback.message.answer(f"Замітка '{title}' видалена.", reply_markup=main_menu)
-    await callback.answer()
+    await callback.message.edit_text(f"Замітка '{title}' видалена.", reply_markup=None)  # Изменяем сообщение
+    await callback.answer("Замітка видалена!", cache_time=1)  # Добавляем cache_time
+
 
 # --- Запуск бота ---
 async def main():
