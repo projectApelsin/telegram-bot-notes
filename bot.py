@@ -7,7 +7,7 @@ from aiogram.filters import CommandStart, Command
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-
+from aiogram.filters.callback_data import CallbackData
 
 from firestore_db import save_note, get_notes, delete_note, update_note
 from config import BOT_TOKEN
@@ -39,6 +39,8 @@ cancel_keyboard = ReplyKeyboardMarkup(
     ],
     resize_keyboard=True
 )
+
+
 
 # --- Команда /start ---
 @dp.message(CommandStart())
@@ -164,6 +166,9 @@ async def delete_notes_step2(callback: types.CallbackQuery):
 
 # --- Запуск бота ---
 async def main() -> None:
+    dp.callback_query.register(view_notes_step2, lambda c: c.data.startswith("view_note:"))
+    dp.callback_query.register(edit_notes_step2, lambda c: c.data.startswith("edit_note:"))
+    dp.callback_query.register(delete_notes_step2, lambda c: c.data.startswith("delete_note:"))
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
