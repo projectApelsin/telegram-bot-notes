@@ -21,9 +21,9 @@ user_states = {}
 # --- Главное меню ---
 main_menu = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="📝 Нова заметка")],
-        [KeyboardButton(text="📖 Переглянути заметку")],
-        [KeyboardButton(text="🗑 Видалити замітку")]
+        [KeyboardButton(text="📝 Нова нотатка")],
+        [KeyboardButton(text="📖 Переглянути нотатку")],
+        [KeyboardButton(text="🗑 Видалити нотатку")]
     ],
     resize_keyboard=True
 )
@@ -51,15 +51,15 @@ def create_notes_keyboard(notes, action):
     return keyboard.as_markup()
 
 # --- Создание новой заметки ---
-@dp.message(F.text == "📝 Нова заметка")
+@dp.message(F.text == "📝 Нова нотатка")
 async def new_note_step1(message: types.Message):
     user_states[message.from_user.id] = {"state": "awaiting_title"}
-    await message.answer("Введіть заголовок замітки:", reply_markup=cancel_keyboard)
+    await message.answer("Введіть заголовок нотатки:", reply_markup=cancel_keyboard)
 
 @dp.message(lambda msg: user_states.get(msg.from_user.id, {}).get("state") == "awaiting_title")
 async def new_note_step2(message: types.Message):
     user_states[message.from_user.id] = {"state": "awaiting_text", "title": message.text}
-    await message.answer("Тепер введіть текст замітки:", reply_markup=cancel_keyboard)
+    await message.answer("Тепер введіть текст нотатки:", reply_markup=cancel_keyboard)
 
 @dp.message(lambda msg: user_states.get(msg.from_user.id, {}).get("state") == "awaiting_text")
 async def new_note_step3(message: types.Message):
@@ -67,40 +67,40 @@ async def new_note_step3(message: types.Message):
     title = user_states[user_id]["title"]
     save_note(user_id, title, message.text)
     user_states.pop(user_id, None)
-    await message.answer(f"Замітка '{title}' збережена!", reply_markup=main_menu)
+    await message.answer(f"Нотатка '{title}' збережена!", reply_markup=main_menu)
 
 # --- Просмотр заметки ---
-@dp.message(F.text == "📖 Переглянути заметку")
+@dp.message(F.text == "📖 Переглянути нотатку")
 async def view_notes_step1(message: types.Message):
     notes = get_notes(message.from_user.id)
     if notes:
-        await message.answer("Виберіть замітку:", reply_markup=create_notes_keyboard(notes, "view_note"))
+        await message.answer("Виберіть нотатку:", reply_markup=create_notes_keyboard(notes, "view_note"))
     else:
-        await message.answer("У вас немає заміток.", reply_markup=main_menu)
+        await message.answer("У вас немає нотаток.", reply_markup=main_menu)
 
 @dp.callback_query(F.data.startswith("view_note:"))
 async def view_notes_step2(callback: types.CallbackQuery):
     _, _, title = callback.data.partition(":")
     notes = get_notes(callback.from_user.id)
-    text = notes.get(title, "Замітка не знайдена.")
+    text = notes.get(title, "Нотатка не знайдена.")
     await callback.message.answer(f"📖 <b>{title}</b>\n\n{text}", reply_markup=main_menu)
     await callback.answer()
 
 # --- Удаление заметки ---
-@dp.message(F.text == "🗑 Видалити замітку")
+@dp.message(F.text == "🗑 Видалити нотатку")
 async def delete_notes_step1(message: types.Message):
     notes = get_notes(message.from_user.id)
     if notes:
-        await message.answer("Виберіть замітку для видалення:", reply_markup=create_notes_keyboard(notes, "delete_note"))
+        await message.answer("Виберіть нотатку для видалення:", reply_markup=create_notes_keyboard(notes, "delete_note"))
     else:
-        await message.answer("У вас немає заміток.", reply_markup=main_menu)
+        await message.answer("У вас немає нотаток.", reply_markup=main_menu)
 
 @dp.callback_query(F.data.startswith("delete_note:"))
 async def delete_notes_step2(callback: types.CallbackQuery):
     _, title = callback.data.split(":", 1)
     delete_note(callback.from_user.id, title)
-    await callback.message.edit_text(f"Замітка '{title}' видалена.", reply_markup=None)  # Изменяем сообщение
-    await callback.answer("Замітка видалена!", cache_time=1)  # Добавляем cache_time
+    await callback.message.edit_text(f"Нотатка '{title}' видалена.", reply_markup=None)  # Изменяем сообщение
+    await callback.answer("Нотатка видалена!", cache_time=1)  # Добавляем cache_time
 
 
 # --- Запуск бота ---
